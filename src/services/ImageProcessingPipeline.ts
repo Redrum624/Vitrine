@@ -12,7 +12,30 @@ import { LocalAdjustmentsPipelineModule } from '../modules/LocalAdjustmentsPipel
 import { LensCorrectionsPipelineModule } from '../modules/LensCorrectionsPipelineModule';
 import { NoiseReductionModule } from '../modules/NoiseReductionModule';
 import { enhanceModule } from '../modules/EnhanceModule';
-import { webWorkerImageProcessor, WorkerModuleConfig } from './WebWorkerImageProcessor';
+import type { WorkerModuleConfig, WorkerImageData, ProcessingResult } from './WebWorkerImageProcessor';
+
+/**
+ * Worker-pool delegate, INJECTED rather than imported.
+ *
+ * This module is the entry graph of pipeline.worker.ts. A value import of
+ * webWorkerImageProcessor here would drag the pool manager — and its own
+ * worker factory (`./pipeline.worker?worker&url`) — into the worker bundle,
+ * making the worker chunk reference itself at build time. The pool registers
+ * itself via setWorkerPool() at ITS module evaluation (WebWorkerImageProcessor
+ * is value-imported by the renderer, e.g. AdjustmentPanel). Inside a worker no
+ * registration ever happens — workerPool stays null and every pass runs on the
+ * worker's own thread, exactly the intended useWebWorkers=false path.
+ */
+export interface WorkerPoolLike {
+  shouldUseWorkers(imageData: WorkerImageData): boolean;
+  processImage(imageData: WorkerImageData, pipeline: WorkerModuleConfig[]): Promise<ProcessingResult>;
+}
+
+let workerPool: WorkerPoolLike | null = null;
+
+export function setWorkerPool(pool: WorkerPoolLike): void {
+  workerPool = pool;
+}
 
 // Module-specific param interfaces for type-safe identity checks
 interface CurveNode {
@@ -63,6 +86,11 @@ export interface ProcessingContext {
    *  normalises by the same global constant (seam-free sharpen gain). Absent on the whole-image /
    *  main-thread path — edgeMask then uses its own buffer max (byte-identical to before). */
   edgeMaskGlobalMax?: number;
+  /** True when this pass produces an EXPORT buffer (ExportDialog / MultiExportService). Modules may
+   *  use it to skip diagnostics-only work — e.g. NoiseReductionModule's logQualityMetrics runs two
+   *  full-buffer O(n) loops that are pure logging; at export resolution that is measurable waste.
+   *  Never changes pixel output. */
+  isExport?: boolean;
 }
 
 /** Trailing options for {@link ImageProcessingPipeline.processImage}. Replaces the
@@ -359,6 +387,28 @@ export class ImageProcessingPipeline {
           return tempNeutral && tintNeutral;
         }
 
+        case 'exposure': {
+          // ExposureModule.process() applies ONLY `exposure` (2^ev multiplier) and `black`
+          // (level subtraction); the deflicker_* params are inert on the pipeline path
+          // (processWithAutoDeflicker is a separate API). The generic all-zero fallback wrongly
+          // marked the DEFAULT state non-identity (deflicker_percentile 50, target level -4), so
+          // every unedited preview/export ran a full-buffer no-op exposure pass — and the
+          // zero-active-modules identity fast path below could never fire (R5, 2026-07-20).
+          const p = params as { exposure?: number; black?: number };
+          if (Math.abs(p.exposure ?? 0) >= 0.001 || Math.abs(p.black ?? 0) >= 0.001) return false;
+          // The default-params pass is still LOAD-BEARING when lens vignetting is active
+          // (W3 fix round 1, finding M1): pipeline order is crop(0) → lens(1) → exposure(2),
+          // and pre-W3 the always-run exposure pass clamped every pixel to [0,1] here.
+          // Vignetting correction is the pipeline's ONLY upstream producer of >1 values (its
+          // multiplicative factor is unclamped, up to 1 + 9·strength at the corners; film grain
+          // clamps its own output, resampling is convex, everything else runs after exposure).
+          // Skipping the pass would leak >1 values into every downstream module and change
+          // pre-W3 output bytes. Clamping inside the vignetting module instead would alter
+          // behaviour when exposure is NOT at defaults and require a matching GPU-shader
+          // change — wrong altitude; keep the clamp where it always lived.
+          return !this.lensVignettingActive();
+        }
+
         case 'basicadj': {
           // All numeric parameters should be 0 for identity
           return Object.entries(params).every(([key, val]) => {
@@ -429,6 +479,25 @@ export class ImageProcessingPipeline {
     }
   }
 
+  /** True when the lens-corrections module would actually run its vignetting pass
+   *  (module enabled, vignetting section enabled, amount ≠ 0) — the only module upstream of
+   *  exposure that produces values > 1. Used by the exposure identity check above: the
+   *  default-params exposure pass doubles as the pipeline's [0,1] clamp and must not be
+   *  skipped while such values can reach it. Reads the same param shape on both the renderer
+   *  pipeline and the worker pipeline (applyWorkerConfig round-trips lensCorrectionsParams),
+   *  so worker/main parity holds. */
+  private lensVignettingActive(): boolean {
+    const lens = this.modules.get('lenscorrections');
+    if (!lens || lens.isEnabled === false) return false;
+    const lensParams = this.getModuleParams(lens, 'lenscorrections') as {
+      enabled?: boolean;
+      lensCorrectionsParams?: { vignetting?: { enabled?: boolean; amount?: number } };
+    };
+    if (lensParams.enabled === false) return false;
+    const vignetting = lensParams.lensCorrectionsParams?.vignetting;
+    return vignetting?.enabled === true && (vignetting.amount ?? 0) !== 0;
+  }
+
   // Helper method to check if a curve array represents a linear (identity) transformation
   private isCurveLinear(curve: CurveNode[] | undefined): boolean {
     if (!curve || curve.length < 2) return true;
@@ -486,14 +555,22 @@ export class ImageProcessingPipeline {
     const isSmallPreview = imageSize < 256 * 256; // Less than 256x256 pixels
 
     // Check if we should use Web Workers for performance
-    if (useWebWorkers && !isSmallPreview && webWorkerImageProcessor.shouldUseWorkers(imageData)) {
-      return this.processWithWebWorkers(input, context);
+    if (useWebWorkers && !isSmallPreview && workerPool && workerPool.shouldUseWorkers(imageData)) {
+      return this.processWithWebWorkers(input, context, cacheResults);
     } else {
       return this.processOnMainThread(input, context, onProgress, cacheResults);
     }
   }
 
-  private async processWithWebWorkers(input: Float32Array, context: ProcessingContext): Promise<Float32Array> {
+  // W4 R2: `cacheResults` is threaded through so the MAIN-THREAD FALLBACKS below honor the
+  // caller's caching intent — before this, a bake/export develop pass whose worker run failed
+  // fell back via processOnMainThread(input, context) and silently re-enabled caching, parking
+  // full-resolution module results after all. The worker path itself never touches moduleCache.
+  private async processWithWebWorkers(input: Float32Array, context: ProcessingContext, cacheResults = true): Promise<Float32Array> {
+    if (!workerPool) {
+      // No pool registered (worker scope, or tests) — stay on this thread.
+      return this.processOnMainThread(input, context, undefined, cacheResults);
+    }
 
     try {
       // Build pipeline configuration for workers
@@ -525,18 +602,36 @@ export class ImageProcessingPipeline {
         channels: context.channels
       };
 
-      const result = await webWorkerImageProcessor.processImage(imageData, pipeline);
+      const result = await workerPool.processImage(imageData, pipeline);
 
       if (!result.success) {
         logger.warn('Web Worker processing failed, falling back to main thread');
-        return this.processOnMainThread(input, context);
+        return this.processOnMainThread(input, context, undefined, cacheResults);
       }
 
+      // Mirror the main-thread contract: CropModule mutates context.width/height in place, and the
+      // worker's local context mutation dies at the structured-clone boundary — the pool returns
+      // the TRUE output dims instead (PROCESS_COMPLETE outputWidth/outputHeight; undefined on the
+      // tiled path, which never changes dims). Write them back into the CALLER's context so export
+      // callers reading `context.width/height` after processImage stay correct (the v1.30.0
+      // cropped-export corruption class). Guarded by a buffer-conservation check first (v1.32.0
+      // ethos): a result whose length disagrees with its claimed dims falls back to main thread.
+      const outW = typeof result.width === 'number' ? result.width : context.width;
+      const outH = typeof result.height === 'number' ? result.height : context.height;
+      if (result.data.length !== outW * outH * context.channels) {
+        logger.error(
+          `Worker result length ${result.data.length} does not match claimed dims ` +
+          `${outW}x${outH}x${context.channels} — falling back to main thread`,
+        );
+        return this.processOnMainThread(input, context, undefined, cacheResults);
+      }
+      context.width = outW;
+      context.height = outH;
       return result.data;
 
     } catch (error) {
       logger.error('Web Worker processing error, falling back to main thread:', error);
-      return this.processOnMainThread(input, context);
+      return this.processOnMainThread(input, context, undefined, cacheResults);
     }
   }
 
@@ -546,23 +641,27 @@ export class ImageProcessingPipeline {
     onProgress?: (completed: number, total: number) => void,
     cacheResults = true,
   ): Promise<Float32Array> {
+    // Pre-count the modules that will actually run (enabled AND non-identity). Two uses:
+    //  - ZERO active modules → return the input as-is, skipping the defensive full-buffer copy
+    //    below. Nothing runs, so nothing can mutate the buffer — an identity export of a 20MP+
+    //    image no longer pays a ~320MB Float32 copy for nothing. Callers treat the result as
+    //    read-only either way (they encode it or blit it).
+    //  - progress reporting (export path): a meaningful done/total fraction.
+    let progressTotal = 0;
+    let progressDone = 0;
+    for (const id of this.processingOrder) {
+      const m = this.modules.get(id);
+      if (m && m.isEnabled !== false && !this.isModuleIdentity(m)) progressTotal++;
+    }
+    if (progressTotal === 0) {
+      logger.warn('No modules were processed - image unchanged');
+      return input;
+    }
+
     let currentData: Float32Array = new Float32Array(input);
 
     // Track processing statistics
     let modulesProcessed = 0;
-
-    // When a progress callback is supplied (export path), pre-count the modules
-    // that will actually run so we can report a meaningful fraction and yield to
-    // the event loop between modules — keeping the UI responsive and the
-    // top-left export bar animating instead of freezing the whole renderer.
-    let progressTotal = 0;
-    let progressDone = 0;
-    if (onProgress) {
-      for (const id of this.processingOrder) {
-        const m = this.modules.get(id);
-        if (m && m.isEnabled !== false && !this.isModuleIdentity(m)) progressTotal++;
-      }
-    }
     const reportProgress = async (yieldToEventLoop: boolean) => {
       if (!onProgress) return;
       progressDone++;
