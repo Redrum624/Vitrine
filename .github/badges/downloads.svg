@@ -5,9 +5,9 @@
   <line x1="64" y1="144.0" x2="776" y2="144.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="144.0" dy="4" text-anchor="end" class="t">27</text>
   <line x1="64" y1="86.0" x2="776" y2="86.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="86.0" dy="4" text-anchor="end" class="t">40</text>
   <line x1="64" y1="28.0" x2="776" y2="28.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="28.0" dy="4" text-anchor="end" class="t">53</text>
-  <polyline points="64.0,260.0 111.5,260.0 158.9,260.0 206.4,260.0 253.9,260.0 301.3,260.0 348.8,260.0 396.3,260.0 443.7,260.0 491.2,260.0 538.7,260.0 586.1,84.9 633.6,41.1 681.1,41.1 728.5,36.8 776.0,28.0" fill="none" stroke="#58a6ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="64.0,260.0 108.5,260.0 153.0,260.0 197.5,260.0 242.0,260.0 286.5,260.0 331.0,260.0 375.5,260.0 420.0,260.0 464.5,260.0 509.0,260.0 553.5,84.9 598.0,41.1 642.5,41.1 687.0,36.8 731.5,28.0 776.0,28.0" fill="none" stroke="#58a6ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
   <circle cx="776.0" cy="28.0" r="4" fill="#58a6ff"/>
   <text x="64" y="288" class="t">2026-07-12</text>
-  <text x="776" y="288" text-anchor="end" class="t">2026-07-27</text>
+  <text x="776" y="288" text-anchor="end" class="t">2026-07-28</text>
   <text x="776" y="20" text-anchor="end" class="title">Total downloads: 53</text>
 </svg>
