@@ -3,11 +3,11 @@
   <line x1="64" y1="260.0" x2="776" y2="260.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="260.0" dy="4" text-anchor="end" class="t">0</text>
   <line x1="64" y1="202.0" x2="776" y2="202.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="202.0" dy="4" text-anchor="end" class="t">14</text>
   <line x1="64" y1="144.0" x2="776" y2="144.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="144.0" dy="4" text-anchor="end" class="t">28</text>
-  <line x1="64" y1="86.0" x2="776" y2="86.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="86.0" dy="4" text-anchor="end" class="t">41</text>
-  <line x1="64" y1="28.0" x2="776" y2="28.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="28.0" dy="4" text-anchor="end" class="t">55</text>
-  <polyline points="64.0,260.0 93.7,260.0 123.3,260.0 153.0,260.0 182.7,260.0 212.3,260.0 242.0,260.0 271.7,260.0 301.3,260.0 331.0,260.0 360.7,260.0 390.3,91.3 420.0,49.1 449.7,49.1 479.3,44.9 509.0,36.4 538.7,36.4 568.3,36.4 598.0,32.2 627.7,32.2 657.3,32.2 687.0,32.2 716.7,28.0 746.3,28.0 776.0,28.0" fill="none" stroke="#58a6ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="64" y1="86.0" x2="776" y2="86.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="86.0" dy="4" text-anchor="end" class="t">42</text>
+  <line x1="64" y1="28.0" x2="776" y2="28.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="28.0" dy="4" text-anchor="end" class="t">56</text>
+  <polyline points="64.0,260.0 92.5,260.0 121.0,260.0 149.4,260.0 177.9,260.0 206.4,260.0 234.9,260.0 263.4,260.0 291.8,260.0 320.3,260.0 348.8,260.0 377.3,94.3 405.8,52.9 434.2,52.9 462.7,48.7 491.2,40.4 519.7,40.4 548.2,40.4 576.6,36.3 605.1,36.3 633.6,36.3 662.1,36.3 690.6,32.1 719.0,32.1 747.5,32.1 776.0,28.0" fill="none" stroke="#58a6ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
   <circle cx="776.0" cy="28.0" r="4" fill="#58a6ff"/>
   <text x="64" y="288" class="t">2026-07-12</text>
-  <text x="776" y="288" text-anchor="end" class="t">2026-08-05</text>
-  <text x="776" y="20" text-anchor="end" class="title">Total downloads: 55</text>
+  <text x="776" y="288" text-anchor="end" class="t">2026-08-06</text>
+  <text x="776" y="20" text-anchor="end" class="title">Total downloads: 56</text>
 </svg>
