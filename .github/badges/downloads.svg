@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="300" viewBox="0 0 800 300" role="img" aria-label="Downloads over time">
   <style>.t{font:12px -apple-system,'Segoe UI',sans-serif;fill:#8b949e}.title{font:600 14px -apple-system,'Segoe UI',sans-serif;fill:#8b949e}</style>
   <line x1="64" y1="260.0" x2="776" y2="260.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="260.0" dy="4" text-anchor="end" class="t">0</text>
-  <line x1="64" y1="202.0" x2="776" y2="202.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="202.0" dy="4" text-anchor="end" class="t">24</text>
-  <line x1="64" y1="144.0" x2="776" y2="144.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="144.0" dy="4" text-anchor="end" class="t">48</text>
-  <line x1="64" y1="86.0" x2="776" y2="86.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="86.0" dy="4" text-anchor="end" class="t">72</text>
-  <line x1="64" y1="28.0" x2="776" y2="28.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="28.0" dy="4" text-anchor="end" class="t">96</text>
-  <polyline points="64.0,260.0 79.1,260.0 94.3,260.0 109.4,260.0 124.6,260.0 139.7,260.0 154.9,260.0 170.0,260.0 185.2,260.0 200.3,260.0 215.5,260.0 230.6,163.3 245.8,139.2 260.9,139.2 276.1,136.8 291.2,131.9 306.4,131.9 321.5,131.9 336.7,129.5 351.8,129.5 367.0,129.5 382.1,129.5 397.3,127.1 412.4,127.1 427.6,127.1 442.7,124.7 457.9,117.4 473.0,117.4 488.2,115.0 503.3,115.0 518.5,115.0 533.6,115.0 548.8,115.0 563.9,115.0 579.1,115.0 594.2,115.0 609.4,115.0 624.5,110.2 639.7,110.2 654.8,98.1 670.0,88.4 685.1,81.2 700.3,59.4 715.4,49.8 730.6,40.1 745.7,37.7 760.9,35.3 776.0,28.0" fill="none" stroke="#58a6ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="64" y1="202.0" x2="776" y2="202.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="202.0" dy="4" text-anchor="end" class="t">25</text>
+  <line x1="64" y1="144.0" x2="776" y2="144.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="144.0" dy="4" text-anchor="end" class="t">50</text>
+  <line x1="64" y1="86.0" x2="776" y2="86.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="86.0" dy="4" text-anchor="end" class="t">75</text>
+  <line x1="64" y1="28.0" x2="776" y2="28.0" stroke="#8b949e" stroke-opacity="0.25"/><text x="56" y="28.0" dy="4" text-anchor="end" class="t">100</text>
+  <polyline points="64.0,260.0 78.8,260.0 93.7,260.0 108.5,260.0 123.3,260.0 138.2,260.0 153.0,260.0 167.8,260.0 182.7,260.0 197.5,260.0 212.3,260.0 227.2,167.2 242.0,144.0 256.8,144.0 271.7,141.7 286.5,137.0 301.3,137.0 316.2,137.0 331.0,134.7 345.8,134.7 360.7,134.7 375.5,134.7 390.3,132.4 405.2,132.4 420.0,132.4 434.8,130.1 449.7,123.1 464.5,123.1 479.3,120.8 494.2,120.8 509.0,120.8 523.8,120.8 538.7,120.8 553.5,120.8 568.3,120.8 583.2,120.8 598.0,120.8 612.8,116.2 627.7,116.2 642.5,104.6 657.3,95.3 672.2,88.3 687.0,67.4 701.8,58.2 716.7,48.9 731.5,46.6 746.3,44.2 761.2,37.3 776.0,28.0" fill="none" stroke="#58a6ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
   <circle cx="776.0" cy="28.0" r="4" fill="#58a6ff"/>
   <text x="64" y="288" class="t">2026-07-12</text>
-  <text x="776" y="288" text-anchor="end" class="t">2026-08-28</text>
-  <text x="776" y="20" text-anchor="end" class="title">Total downloads: 96</text>
+  <text x="776" y="288" text-anchor="end" class="t">2026-08-29</text>
+  <text x="776" y="20" text-anchor="end" class="title">Total downloads: 100</text>
 </svg>
